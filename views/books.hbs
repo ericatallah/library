@@ -1,0 +1,60 @@
+<div class="search-form-container margin-bottom">
+    <form action="/books/searchbooks" method="GET">
+        <input class="form-control" type="text" name="booksearch" id="book-search" placeholder="Author, Title, Type, or Location" />
+        <button id="search-books-submit" class="btn btn-primary" type="submit"><span class="fa fa-search"></span></button>
+    </form>
+    <a href="/books/addbook" class="btn btn-success top-float-button" title="Add a new book to your library">Add a book to your library <span class="fa fa-plus"></span></a>
+</div>
+
+{{#if error}}
+<div id="search-fail">
+    <div class="alert alert-danger" role="alert">{{error}}</div>
+</div>
+{{/if}}
+
+<table class="table xs-hide">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Author</th>
+            <th scope="col">Title</th>
+            <th scope="col">Type</th>
+            <th scope="col">Sub Type</th>
+            <th scope="col">Location</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#if books}}
+        {{#each books}}
+        <tr>
+            <th scope="row">{{@index}}</th>
+            <td>{{author}}</td>
+            <td>{{title}}</td>
+            <td>{{type}}</td>
+            <td>{{sub_type}}</td>
+            <td>{{location}}</td>
+        </tr>
+        {{/each}}
+        {{/if}}
+    </tbody>
+</table>
+
+<container class="sm-hide">
+    {{#if books}}
+    {{#each books}}
+    <div class="card">
+        <img src="/static/img/don_quixote.jpg" class="card-img-top" alt="Image of {{title}}">
+        <div class="card-body">
+            <h5 class="card-title">{{title}}</h5>
+            <p class="card-text">
+                <strong>Author:</strong> {{author}}<br/>
+                <strong>Type:</strong> {{type}}<br/>
+                <strong>Sub Type:</strong> {{sub_type}}<br/>
+                <strong>Location:</strong> {{location}}<br/>
+            </p>
+            <a href="#" class="btn btn-primary">Go somewhere</a>
+        </div>
+    </div>
+    {{/each}}
+    {{/if}}
+</container>

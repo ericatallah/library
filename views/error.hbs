@@ -1,0 +1,11 @@
+<section class="burning-book container">
+    <h1>{{error.message}} - Status: {{error.status}}</h1>
+    <h2><a href="/">Back to Home Page</a></h2>
+    <img src="/static/img/burning_book.jpg" class="desk-items" />
+    <div class="paper">
+        <pre class="stack-trace">
+            {{error.stack}}
+        </pre>
+    </div>
+    <div class="tear"></div>
+</section>
