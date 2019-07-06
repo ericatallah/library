@@ -10,9 +10,16 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use('/static', express.static('public'));
 
+const isEqualHelper = (a, b, opts) => {
+    return a == b ? opts.fn(this) : opts.inverse(this);
+};
+
 app.engine('hbs', hbs({
     extname: 'hbs',
     defaultLayout: 'main',
+    helpers: {
+        if_eq: isEqualHelper
+    },
     layoutsDir: `${__dirname}/views/layouts/`,
     partialsDir: `${__dirname}/views/includes/`
 }));

@@ -77,8 +77,6 @@ router.get('/getbook/:id', (req, res) => {
 
 // Insert book get and post
 router.get('/addbook', (req, res) => {
-    console.log('query: ', req.query);
-
     const sql = 
     `
     SELECT * FROM book_type;
@@ -91,7 +89,7 @@ router.get('/addbook', (req, res) => {
         if(err) throw err;
         console.log(result);
         const tplData = {
-            resultMsg: req.query.s === '1' ? 'Book successfully added to your library.' : false,
+            resultMsg: req.query.s === '1' ? 'Book added.' : false,
             types: result[0],
             sub_types: result[1],
             languages: result[2],
@@ -112,56 +110,75 @@ router.post('/insertbook', (req, res) => {
         book_location_id: +req.body.location 
     };
 
-    console.log('book to be inserted: ', book);
-
     const sql = 'INSERT INTO book SET ?';
     const query = db.query(sql, book, (err, result) => {
         if(err) throw err;
-        console.log(result);
         res.redirect('/books/addbook?s=1');
     });
 });
 
-// Update book by id
-router.put('/updatebook/:id', ({ body }, res) => {
-    const { id } = body;
-    const { author } = body;
-    const { title } = body;
-    const { type } = body;
-    const { sub_type } = body;
-    const { language } = body;
-    const { location } = body;
-
+// Update book GET and PUT (by id)
+router.get('/updatebook', (req, res) => {
+    const id = req.query.id;
+    console.log('id is: ', id);
     const sql = 
-        `
-        UPDATE book 
-        SET 
-        author = "${author}", 
-        title = "${title}", 
-        type = "${type}", 
-        sub_type = "${sub_type}", 
-        language = "${language}",
-        location = "${location}" 
-        WHERE id = ${id}
-        `;
+    `
+    SELECT * FROM book WHERE id = ${id};
+    SELECT * FROM book_type;
+    SELECT * FROM book_sub_type;
+    SELECT * FROM book_language;
+    SELECT * FROM book_location;
+    `;
+
     const query = db.query(sql, (err, result) => {
         if(err) throw err;
-        console.log(result);
-        res.send(`Book: ${id} updated - Title: ${title}`);
+
+        const tplData = {
+            resultMsg: req.query.s === '1' ? `${result[0][0].title} updated.` : false,
+            book: result[0][0],
+            types: result[1],
+            sub_types: result[2],
+            languages: result[3],
+            locations: result[4]
+        };
+
+        res.render('updatebook', tplData);
+    });
+});
+
+router.post('/updatebookbyid/:id', (req, res) => {
+    const id = +req.params.id;
+    const book = {
+        id,
+        author: req.body.author, 
+        title: req.body.title, 
+        book_type_id: +req.body.type, 
+        book_sub_type_id: +req.body.sub_type, 
+        book_language_id: +req.body.language,
+        book_location_id: +req.body.location 
+    };
+
+    const sql = `UPDATE book SET ? WHERE id = ${id};`;
+    const query = db.query(sql, book, (err, result) => {
+        if(err) throw err;
+        res.redirect(`/books/updatebook?id=${id}&s=1`);
     });
 });
 
 // Delete book by id
 router.delete('/deletebook/:id', (req, res) => {
     const { id } = req.params;
-    const sql = `DELETE FROM book WHERE id = ${id}`;
-    res.status(200).json({ fail: false, msg: `Book: ${id} deleted`, data: 'hello' });
-    /*
+    const sql = 
+        `
+        SELECT title FROM book WHERE id = ${id};
+        DELETE FROM book WHERE id = ${id};
+        `;
+    
     const query = db.query(sql, (err, result) => {
         if(err) throw err;
         console.log(result);
-        res.status(200).json({ fail: false, msg: `Book: ${id} deleted`, data: result });
-    });*/
+        res.status(200).json({ fail: false, msg: `${result[0][0].title} has been removed.`, data: result[0][0] });
+    });
 });
 
 module.exports = router;

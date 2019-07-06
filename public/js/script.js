@@ -1,25 +1,36 @@
-const displayData = (data) => {
-    console.log('got data: ', data);
+window.onload = () => {
+    removeAlert();
+};
 
-    if (!data.fail) {
-        data.then(res => {
-            console.log('got data: ', res);
-        });
-    } else {
-        document.getElementById('search-fail').innerHTML = `<div class="alert alert-danger" role="alert">${data.msg}</div>`;
-    }
-    
+let alertTimeout;
+
+const showAlert = (type, msg) => {
+    const alertStr = 
+        `<div class="alert alert-${type} fade show" role="alert">
+            <strong>${msg}</strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>`;
+
+    $('body').prepend(alertStr);
+    removeAlert();
+};
+
+const removeAlert = () => {
+    clearTimeout(alertTimeout);
+    alertTimeout = setTimeout(() => {
+        $('.alert').alert('close');
+    }, 5000);
 };
 
 const removeBook = (elem) => {
     const id = +elem.getAttribute('data-bookid');
-    console.log('wtf: ', id);
-    //<div class="alert alert-danger" role="alert">{{error}}</div>
-    const searchFail = document.getElementById('search-fail');
-    const removeBookAlert = document.getElementById('removeBookAlert');
-    fetch(`/books/deletebook/${id}`).then(res => res.json()).then(json => {
+    
+    fetch(`/books/deletebook/${id}`, { method: 'DELETE' }).then(res => res.json()).then(json => {
         console.log('json: ', json);
-        removeBookAlert.alert('show');
+        $('#removeBookModal').modal('hide');
+        showAlert('danger', json.msg);
     });
 };
 

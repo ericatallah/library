@@ -121,9 +121,33 @@ main {
         margin-top: 0;
     }
 
+    .card-title {
+        width: 80%;
+    }
+
+    .card-body {
+        position: relative;
+    }
+
+    .card-body .edit-book {
+        position: absolute;
+        right: 1.25rem;
+        top: 1.25rem;
+    }
+
     .card-body .remove-book {
         position: absolute;
         right: 1.25rem;
         bottom: 1.25rem;
+    }
+
+    .alert {
+        position: fixed;
+        top: 10px;
+        left: 0;
+        right: 0;
+        width: 90%;
+        margin: 0 auto;
+        z-index: 3;
     }
 }

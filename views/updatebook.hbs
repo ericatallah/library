@@ -1,15 +1,15 @@
 <div class="container">
     <a href="/books" class="btn btn-success top-float-button" title="Back to book search"><span class="fa fa-arrow-left"></span> Back to search</a>
-    <h3>Enter the information for a new book below:</h3>
-    <form action="/books/insertbook" method="post">
+    <h3>Update the information for <em>{{book.title}}</em> below:</h3>
+    <form action="/books/updatebookbyid/{{book.id}}" method="POST">
         <div class="form-group">
             <label class="sr-only" for="author">Author</label>
-            <input class="form-control" type="text" id="author" name="author" placeholder="Author" />
+            <input class="form-control" value="{{book.author}}" type="text" id="author" name="author" placeholder="Author" />
         </div>
 
         <div class="form-group">
             <label class="sr-only" for="title">Title</label>
-            <input class="form-control" type="text" id="title" name="title" placeholder="Title" />
+            <input class="form-control" value="{{book.title}}" type="text" id="title" name="title" placeholder="Title" />
         </div>
 
         <div class="form-group">
@@ -17,7 +17,7 @@
             <select id="type" name="type" class="form-control">
                 {{#if types}}
                 {{#each types}}
-                <option value="{{id}}">{{type}}</option>
+                    <option {{#if_eq id ../book.book_type_id}} selected {{/if_eq}} value="{{id}}">{{type}}</option>
                 {{/each}}
                 {{/if}}
             </select>
@@ -28,7 +28,7 @@
             <select id="sub_type" name="sub_type" class="form-control">
                 {{#if sub_types}}
                 {{#each sub_types}}
-                <option value="{{id}}">{{sub_type}}</option>
+                <option {{#if_eq id ../book.book_sub_type_id}} selected {{/if_eq}} value="{{id}}">{{sub_type}}</option>
                 {{/each}}
                 {{/if}}
             </select>
@@ -39,7 +39,7 @@
             <select id="language" name="language" class="form-control">
                 {{#if languages}}
                 {{#each languages}}
-                <option value="{{id}}">{{language}}</option>
+                <option {{#if_eq id ../book.book_language_id}} selected {{/if_eq}} value="{{id}}">{{language}}</option>
                 {{/each}}
                 {{/if}}
             </select>
@@ -50,13 +50,13 @@
             <select id="location" name="location" class="form-control">
                 {{#if locations}}
                 {{#each locations}}
-                <option value="{{id}}">{{location}}</option>
+                <option {{#if_eq id ../book.book_location_id}} selected {{/if_eq}} value="{{id}}">{{location}}</option>
                 {{/each}}
                 {{/if}}
             </select>
         </div>
         
-        <button type="submit" class="btn btn-primary">Add book</button>
+        <button type="submit" class="btn btn-primary">Update book</button>
     </form>
 
     {{#if resultMsg}}
