@@ -10,12 +10,20 @@ const displayData = (data) => {
     }
     
 };
-/*
-document.getElementById('search-books-submit').addEventListener('click', e => {
-    const searchStr = document.getElementById('book-search').value;
-    console.log('wtf: ', searchStr);
 
-    const data = searchStr ? fetch(`/books/searchbooks?s=${searchStr}`).then(data => data.json()) : { fail: true, msg: 'Please enter a search term first.' };
-    displayData(data);
-});
-*/
+const removeBook = (elem) => {
+    const id = +elem.getAttribute('data-bookid');
+    console.log('wtf: ', id);
+    //<div class="alert alert-danger" role="alert">{{error}}</div>
+    const searchFail = document.getElementById('search-fail');
+    const removeBookAlert = document.getElementById('removeBookAlert');
+    fetch(`/books/deletebook/${id}`).then(res => res.json()).then(json => {
+        console.log('json: ', json);
+        removeBookAlert.alert('show');
+    });
+};
+
+const setDataAttr = (elem) => {
+    const id = elem.getAttribute('data-bookid');
+    document.getElementById('removeBookConfirm').setAttribute('data-bookid', id);
+};

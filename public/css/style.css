@@ -1,3 +1,7 @@
+*, .btn {
+    border-radius: 0;
+}
+
 body {
     margin: 1rem;
     padding: 0;
@@ -72,15 +76,23 @@ main {
     }
 
     h1 {
-        font-size: 2rem;
+        font-size: 1.5rem;
     }
 
     h2 {
-        font-size: 1.8rem;
+        font-size: 1.3rem;
     }
 
     h3 {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
+    }
+
+    header {
+        margin-bottom: 1rem;
+    }
+
+    #logo {
+        width: 60px;
     }
 
     .sm-hide {
@@ -107,5 +119,11 @@ main {
 
     .card:first-child {
         margin-top: 0;
+    }
+
+    .card-body .remove-book {
+        position: absolute;
+        right: 1.25rem;
+        bottom: 1.25rem;
     }
 }

@@ -6,11 +6,11 @@
     <a href="/books/addbook" class="btn btn-success top-float-button" title="Add a new book to your library">Add a book to your library <span class="fa fa-plus"></span></a>
 </div>
 
-{{#if error}}
 <div id="search-fail">
+    {{#if error}}
     <div class="alert alert-danger" role="alert">{{error}}</div>
+    {{/if}}
 </div>
-{{/if}}
 
 <table class="table xs-hide">
     <thead>
@@ -20,6 +20,7 @@
             <th scope="col">Title</th>
             <th scope="col">Type</th>
             <th scope="col">Sub Type</th>
+            <th scope="col">Language</th>
             <th scope="col">Location</th>
         </tr>
     </thead>
@@ -27,11 +28,12 @@
         {{#if books}}
         {{#each books}}
         <tr>
-            <th scope="row">{{@index}}</th>
+            <th scope="row">{{id}}</th>
             <td>{{author}}</td>
             <td>{{title}}</td>
             <td>{{type}}</td>
             <td>{{sub_type}}</td>
+            <td>{{language}}</td>
             <td>{{location}}</td>
         </tr>
         {{/each}}
@@ -50,11 +52,44 @@
                 <strong>Author:</strong> {{author}}<br/>
                 <strong>Type:</strong> {{type}}<br/>
                 <strong>Sub Type:</strong> {{sub_type}}<br/>
+                <strong>Language:</strong> {{language}}<br/>
                 <strong>Location:</strong> {{location}}<br/>
             </p>
-            <a href="#" class="btn btn-primary">Go somewhere</a>
+            <a href="#" class="btn btn-primary">Book details</a>
+            <button class="btn btn-danger remove-book" onclick="setDataAttr(this);" data-bookid="{{id}}" data-toggle="modal" data-target="#removeBookModal">
+                <span class="fa fa-times"></span>
+            </button>
         </div>
     </div>
     {{/each}}
     {{/if}}
 </container>
+
+<!-- Remove Book Alert -->
+<div id="removeBookAlert" class="alert alert-danger alert-dismissible fade" role="alert">
+    <strong>Book was successfully removed from your library.</strong>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="removeBookModal" tabindex="-1" role="dialog" aria-labelledby="removeBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="removeBookModalLabel">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you would like to permanently remove this book from your library?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button id="removeBookConfirm" type="button" class="btn btn-primary" onclick="removeBook(this);">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
