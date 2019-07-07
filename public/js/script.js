@@ -1,4 +1,7 @@
 require('../css/style.css');
+const $ = require('jquery');
+require('~bootstrap/dist/js/bootstrap');
+
 const Utilities = require('../js/utilities');
 
 window.onload = () => {
