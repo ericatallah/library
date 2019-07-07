@@ -1,43 +1,17 @@
-let alertTimeout;
-const bookDetailsModal = $('#bookDetailsModal');
-const loadingSpinner = document.getElementById('loadingSpinner');
-const defaultBookImage = '/static/img/don_quixote.jpg';
+require('../css/style.css');
+const Utilities = require('../js/utilities');
 
 window.onload = () => {
-    removeAlert();
+    Utilities.removeAlert();
 };
 
-const showLoader = () => {
-    loadingSpinner.classList.toggle('show');
-};
-
-const showAlert = (type, msg, callback) => {
-    const alertStr = 
-        `<div class="alert alert-${type} fade show" role="alert">
-            <strong>${msg}</strong>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>`;
-
-    $('body').prepend(alertStr);
-    removeAlert(callback);
-};
-
-const removeAlert = callback => {
-    clearTimeout(alertTimeout);
-    alertTimeout = setTimeout(() => {
-        $('.alert').alert('close');
-        if (callback) callback();
-    }, 5000);
-};
-
+// todo eric: need to remove onclick attribute and set a jquery click event to call this function instead..
 const removeBook = (elem) => {
     const id = +elem.getAttribute('data-bookid');
     
     fetch(`/books/deletebook/${id}`, { method: 'DELETE' }).then(res => res.json()).then(json => {
         $('#removeBookModal').modal('hide');
-        showAlert('danger', json.msg, () => {window.location.reload(true);});
+        Utilities.showAlert('danger', json.msg, () => {window.location.reload(true);});
     });
 };
 
@@ -47,12 +21,12 @@ const setDataAttr = (elem) => {
 };
 
 const getBookInfo = async elem => {
-    showLoader();
+    Utilities.showLoader();
     const bookData = await fetch(`/books/getbookinfo?query=${elem.getAttribute('data-query')}`).then(res => res.json());
     
     if (!bookData.data) {
-        showAlert('danger', bookData.msg);
-        showLoader();
+        Utilities.showAlert('danger', bookData.msg);
+        Utilities.showLoader();
         return false;
     }
 
@@ -65,10 +39,10 @@ const getBookInfo = async elem => {
     const categories = bookData.data.volumeInfo.categories ? bookData.data.volumeInfo.categories.join(', ') : '';
     const authors = bookData.data.volumeInfo.authors ? bookData.data.volumeInfo.authors.join(', ') : '';
 
-    bookDetailsModal.find('.modal-title').text(`${title} ${subtitle}`);
-    bookDetailsModal.find('.modal-body').html(`
+    Utilities.bookDetailsModal.find('.modal-title').text(`${title} ${subtitle}`);
+    Utilities.bookDetailsModal.find('.modal-body').html(`
         <div class="flex">
-            <img src="${imageUrl ? imageUrl : defaultBookImage}" alt="Book Cover" />
+            <img src="${imageUrl ? imageUrl : Utilities.defaultBookImage}" alt="Book Cover" />
             <div class="book-details-container">
                 <p><strong>Published:</strong> ${publishedDate}</p>
                 <p><strong>Pages:</strong> ${pageCount}</p>
@@ -79,6 +53,14 @@ const getBookInfo = async elem => {
         <p>${description}</p>
     `);
     
-    showLoader();
-    $('#bookDetailsModal').modal('show');
+    Utilities.showLoader();
+    Utilities.bookDetailsModal.modal('show');
 };
+
+$('#get-book-info').on('click', '.get-book-info', (e) => {
+    getBookInfo(e.target);
+});
+
+$('#book-cards-list').on('click', '.get-book-info', (e) => {
+    getBookInfo(e.target);
+});

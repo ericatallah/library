@@ -12,7 +12,7 @@
     {{/if}}
 </div>
 
-<table class="table xs-hide table-bordered table-hover table-sm">
+<table id="books-table" class="table xs-hide table-bordered table-hover table-sm">
     <thead>
         <tr>
             <th style="width:5%;" scope="col"></th>
@@ -34,10 +34,10 @@
                 </a>
             </th>
             <td class="break-word">
-                <a href="javascript:;" onclick="getBookInfo(this);" class="get-book-info dark-link" data-query="q={{title}}+inauthor:{{author}}">{{author}}</a>
+                <a href="javascript:;" class="get-book-info dark-link" data-query="q={{title}}+inauthor:{{author}}">{{author}}</a>
             </td>
             <td class="break-word">
-                <a href="javascript:;" onclick="getBookInfo(this);" class="get-book-info dark-link" data-query="q={{title}}+inauthor:{{author}}">{{title}} ({{language}})</a>
+                <a href="javascript:;" class="get-book-info dark-link" data-query="q={{title}}+inauthor:{{author}}">{{title}} ({{language}})</a>
             </td>
             <td>{{type}}</td>
             <td>{{sub_type}}</td>
@@ -53,7 +53,7 @@
     </tbody>
 </table>
 
-<container class="sm-hide">
+<container id="book-cards-list" class="sm-hide">
     {{#if books}}
     {{#each books}}
     <div class="card">
@@ -67,7 +67,7 @@
                 <strong>Language:</strong> {{language}}<br/>
                 <strong>Location:</strong> {{location}}<br/>
             </p>
-            <a href="javascript:;" onclick="getBookInfo(this);" class="get-book-info btn btn-primary" data-query="q={{title}}+inauthor:{{author}}">Book details</a>
+            <a href="javascript:;" class="get-book-info btn btn-primary" data-query="q={{title}}+inauthor:{{author}}">Book details</a>
             <a href="/books/updatebook?id={{id}}" class="btn btn-secondary edit-book">
                 <span class="fa fa-pencil"></span>
             </a>
