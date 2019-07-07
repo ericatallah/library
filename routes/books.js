@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const fetch = require('node-fetch');
 const db = require('../db');
+const googleBooksApiKey = 'AIzaSyAsSVGhCFqAKSn-lZj0T_jC4GMgfRysuow';
 
 let retrieveBooksSql = 
     `
@@ -34,7 +36,6 @@ router.get('/getbooks', (req, res) => {
 // Search books by query parameter string
 router.get('/searchbooks', (req, res) => {
     const s = req.query.booksearch;
-    console.log('s is: ', s);
 
     if (!s) {
         res.render('books', { error: 'Please enter a search term first.' });
@@ -49,12 +50,11 @@ router.get('/searchbooks', (req, res) => {
             book_sub_type.sub_type LIKE '%${s}%' OR
             book_language.language LIKE '%${s}%' OR
             book_location.location LIKE '%${s}%'
-        );
+        ) ORDER BY book_type.type, book_sub_type.sub_type;
         `;
 
         const query = db.query(sql, (err, results) => {
             if(err) throw err;
-            //res.status(200).json({ fail: false, msg: 'Successfully retrieved data.', data: results });
             res.render('books', { books: results });
         });
     }
@@ -65,13 +65,26 @@ router.get('/searchbooks', (req, res) => {
 router.get('/getbook/:id', (req, res) => {
     const sql = retrieveBooksSql + 
         `
-        AND book.id =  ${req.params.id};
+        AND book.id = ${req.params.id};
         `;
 
     const query = db.query(sql, (err, result) => {
         if(err) throw err;
         console.log(result);
         res.send('Book fetched...');
+    });
+});
+
+// Get book info (Google Books API)
+router.get('/getbookinfo', async (req, res) => {
+    const query = `${req.query.query}&key=${googleBooksApiKey}`;
+    const bookPromise = await fetch(`https://www.googleapis.com/books/v1/volumes?${query}`);
+    const bookJson = await bookPromise.json();
+    
+    res.status(200).json({ 
+        fail: bookJson.totalItems > 0 ? false : true, 
+        msg: bookJson.totalItems > 0 ? 'Successfully retrieved book info.' : 'Sorry, could not find any details for this volume.', 
+        data: bookJson.totalItems > 0 ? bookJson.items[0] : null
     });
 });
 
@@ -87,7 +100,7 @@ router.get('/addbook', (req, res) => {
 
     const query = db.query(sql, (err, result) => {
         if(err) throw err;
-        console.log(result);
+        
         const tplData = {
             resultMsg: req.query.s === '1' ? 'Book added.' : false,
             types: result[0],
@@ -120,7 +133,6 @@ router.post('/insertbook', (req, res) => {
 // Update book GET and PUT (by id)
 router.get('/updatebook', (req, res) => {
     const id = req.query.id;
-    console.log('id is: ', id);
     const sql = 
     `
     SELECT * FROM book WHERE id = ${id};
@@ -176,7 +188,7 @@ router.delete('/deletebook/:id', (req, res) => {
     
     const query = db.query(sql, (err, result) => {
         if(err) throw err;
-        console.log(result);
+        
         res.status(200).json({ fail: false, msg: `${result[0][0].title} has been removed.`, data: result[0][0] });
     });
 });
