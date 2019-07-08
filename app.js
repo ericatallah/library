@@ -52,7 +52,7 @@ app.get('/createandseedtables', (req, res) => {
         author VARCHAR(255), 
         title VARCHAR(255), 
         book_type_id INT NOT NULL, 
-        book_sub_type_id INT NOT NULL, 
+        book_sub_type_id INT, 
         book_language_id INT NOT NULL, 
         book_location_id INT NOT NULL,
         FOREIGN KEY(book_type_id) REFERENCES book_type(id),
@@ -166,7 +166,8 @@ app.get('/createandseedtables', (req, res) => {
     (DEFAULT, 'Main'),
     (DEFAULT, 'Office'),
     (DEFAULT, 'Purple Room'),
-    (DEFAULT, 'White Room');
+    (DEFAULT, 'White Room'),
+    (DEFAULT, 'Exiled');
 
     INSERT INTO book (id, author, title, book_type_id, book_sub_type_id, book_language_id, book_location_id) 
     VALUES 

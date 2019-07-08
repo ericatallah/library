@@ -1,4 +1,5 @@
-module.exports = {
+const $ = require('jquery');
+const self = module.exports = {
     alertTimeout: null,
     bookDetailsModal: $('#bookDetailsModal'),
     defaultBookImage: '/static/img/don_quixote.jpg',
@@ -15,11 +16,11 @@ module.exports = {
             </div>`;
     
         $('body').prepend(alertStr);
-        this.removeAlert(callback);
+        self.removeAlert(callback);
     },
     removeAlert: callback => {
-        clearTimeout(this.alertTimeout);
-        this.alertTimeout = setTimeout(() => {
+        clearTimeout(self.alertTimeout);
+        self.alertTimeout = setTimeout(() => {
             $('.alert').alert('close');
             if (callback) callback();
         }, 5000);

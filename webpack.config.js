@@ -1,4 +1,5 @@
 module.exports = {
+    mode: 'development',
     entry: './public/js/script.js',
     output: {
         path: __dirname + '/public/dist',
@@ -8,8 +9,8 @@ module.exports = {
         rules: [
             { 
                 test: /\.css$/, 
-                use: [ 'style-loader', 'css-loader' ],
-                exclude: /node_modules/
+                use: [ 'style-loader', 'css-loader' ]
+                //exclude: /node_modules/
             }
         ]
     }

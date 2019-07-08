@@ -1,15 +1,15 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
 require('../css/style.css');
 const $ = require('jquery');
-require('~bootstrap/dist/js/bootstrap');
+import 'bootstrap/dist/js/bootstrap.bundle';
 
-const Utilities = require('../js/utilities');
+const Utilities = require('./utilities');
 
 window.onload = () => {
     Utilities.removeAlert();
 };
 
-// todo eric: need to remove onclick attribute and set a jquery click event to call this function instead..
-const removeBook = (elem) => {
+const removeBook = elem => {
     const id = +elem.getAttribute('data-bookid');
     
     fetch(`/books/deletebook/${id}`, { method: 'DELETE' }).then(res => res.json()).then(json => {
@@ -18,7 +18,7 @@ const removeBook = (elem) => {
     });
 };
 
-const setDataAttr = (elem) => {
+const setDataAttr = elem => {
     const id = elem.getAttribute('data-bookid');
     document.getElementById('removeBookConfirm').setAttribute('data-bookid', id);
 };
@@ -60,10 +60,22 @@ const getBookInfo = async elem => {
     Utilities.bookDetailsModal.modal('show');
 };
 
-$('#get-book-info').on('click', '.get-book-info', (e) => {
-    getBookInfo(e.target);
+$('#books-table').on('click', '.get-book-info', e => {
+    getBookInfo(e.currentTarget);
 });
 
-$('#book-cards-list').on('click', '.get-book-info', (e) => {
-    getBookInfo(e.target);
+$('#book-cards-list').on('click', '.get-book-info', e => {
+    getBookInfo(e.currentTarget);
+});
+
+$('#books-table').on('click', '.remove-book', e => {
+    setDataAttr(e.currentTarget);
+});
+
+$('#book-cards-list').on('click', '.remove-book', e => {
+    setDataAttr(e.currentTarget);
+});
+
+$('#removeBookConfirm').on('click', e => {
+    removeBook(e.currentTarget);
 });
