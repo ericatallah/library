@@ -4,8 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "webpack && node app.js",
-    "build": "webpack",
+    "start": "webpack --config webpack.dev.config.js && node ./app.js",
+    "build": "webpack --config webpack.prod.config.js && node ./app.js",
     "test": "webpack && nodemon"
   },
   "repository": {

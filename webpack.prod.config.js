@@ -1,8 +1,8 @@
 module.exports = {
-    mode: 'development',
+    mode: 'production',
     entry: './public/js/script.js',
     output: {
-        filename: 'library.bundle.js',
+        filename: 'library-[contentHash].bundle.js',
         path: __dirname + '/public/dist'
     },
     module: {
