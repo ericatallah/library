@@ -1,4 +1,3 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
 require('../css/style.css');
 const $ = require('jquery');
 import 'bootstrap/dist/js/bootstrap.bundle';

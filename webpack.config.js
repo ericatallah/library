@@ -1,3 +1,5 @@
+var nodeExternals = require("webpack-node-externals")
+
 module.exports = {
     mode: 'development',
     entry: './public/js/script.js',
@@ -7,9 +9,9 @@ module.exports = {
     },
     module: {
         rules: [
-            { 
-                test: /\.css$/, 
-                use: [ 'style-loader', 'css-loader' ]
+            {
+                test: /\.css$/,
+                use: ['style-loader', 'css-loader']
                 //exclude: /node_modules/
             }
         ]
