@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fetch = require('node-fetch');
 const db = require('../db');
-const googleBooksApiKey = 'AIzaSyAsSVGhCFqAKSn-lZj0T_jC4GMgfRysuow';
+require('dotenv').config();
 
 let retrieveBooksSql = 
     `
@@ -77,7 +77,7 @@ router.get('/getbook/:id', (req, res) => {
 
 // Get book info (Google Books API)
 router.get('/getbookinfo', async (req, res) => {
-    const query = `${req.query.query}&key=${googleBooksApiKey}`;
+    const query = `${req.query.query}&key=${process.env.GOOGLE_BOOKS_API_KEY}`;
     const bookPromise = await fetch(`https://www.googleapis.com/books/v1/volumes?${query}`);
     const bookJson = await bookPromise.json();
     
