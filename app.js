@@ -2,30 +2,30 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const hbs = require('express-handlebars');
 const db = require('./db');
+const { isEqualHelper } = require('./helpers/helpers');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
+// serve static assets in /public directory as /static route
 app.use('/static', express.static('public'));
 
-const isEqualHelper = (a, b, opts) => {
-    return a == b ? opts.fn(this) : opts.inverse(this);
-};
-
+// setup handlebars template engine
 app.engine('hbs', hbs({
     extname: 'hbs',
     defaultLayout: 'main',
     helpers: {
         if_eq: isEqualHelper
     },
-    layoutsDir: `${__dirname}/views/layouts/`,
-    partialsDir: `${__dirname}/views/includes/`
+    layoutsDir: `./views/layouts/`,
+    partialsDir: `./views/includes/`
 }));
 
 app.set('view engine', 'hbs');
 
+// setup express routes
 const mainRoutes = require('./routes');
 const musicRoutes = require('./routes/music');
 const booksRoutes = require('./routes/books');
