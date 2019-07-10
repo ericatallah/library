@@ -6,5 +6,5 @@ module.exports = async () => {
         console.error('Error: ', err);
     }
 
-    const bookType = await BookType.create({type: 'Architecture'}).catch(errHandler);
+    //const bookType = await BookType.create({type: 'Architecture'}).catch(errHandler);
 }

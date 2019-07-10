@@ -9,4 +9,7 @@ module.exports = conn.define('BookLocation', {
         primaryKey: true
     },
     location: Sequelize.STRING(255),
+},
+{
+    tableName: 'book_location'
 });

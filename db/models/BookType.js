@@ -9,4 +9,7 @@ module.exports = conn.define('BookType', {
         primaryKey: true
     },
     type: Sequelize.STRING(255),
+},
+{
+    tableName: 'book_type'
 });

@@ -9,4 +9,7 @@ module.exports = conn.define('BookLanguage', {
         primaryKey: true
     },
     language: Sequelize.STRING(255),
+},
+{
+    tableName: 'book_language'
 });

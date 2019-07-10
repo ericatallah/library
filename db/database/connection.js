@@ -9,7 +9,12 @@ const sequelize = new Sequelize(
     { 
         host: process.env.DB_CONN_HOST, 
         dialect: 'mysql', 
-        operatorsAliases: false 
+        operatorsAliases: false,
+        define: {
+            timestamps: false,
+            freezeTableName: true,
+            underscored: true,
+        }
     }
 );
 
