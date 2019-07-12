@@ -37,42 +37,42 @@ router.get('/getbooks', (req, res) => {
 
 // Search books by query parameter string
 router.get('/searchbooks', (req, res) => {
-    const s = req.query.booksearch;
+    const s = db.escape(`%${req.query.booksearch}%`);
 
     if (!s) {
         res.render('books', { errorMsg: 'Please enter a search term first.' });
     } else {
         const sql = retrieveBooksSql + 
-        `
-        AND
-        (
-            book.author LIKE '%${s}%' OR 
-            book.title LIKE '%${s}%' OR 
-            book_type.type LIKE '%${s}%' OR 
-            book_sub_type.sub_type LIKE '%${s}%' OR
-            book_language.language LIKE '%${s}%' OR
-            book_location.location LIKE '%${s}%'
-        ) ORDER BY book_type.type, book_sub_type.sub_type;
-        `;
+            `
+            AND
+            (
+                book.author LIKE ${s} OR 
+                book.title LIKE ${s} OR 
+                book_type.type LIKE ${s} OR 
+                book_sub_type.sub_type LIKE ${s} OR
+                book_language.language LIKE ${s} OR
+                book_location.location LIKE ${s}
+            ) ORDER BY book_type.type, book_sub_type.sub_type;
+            `;
 
         const query = db.query(sql, (err, results) => {
             if(err) {
                 console.log('SQL Error: ', err);
                 res.render('books', { books: [], errorMsg: 'There was an error with that search, please try again.' });
-                //throw err;
             } else {
+                console.log(results);
                 res.render('books', { books: results });
             }
         });
     }
 });
 
-
 // Get single book by id
 router.get('/getbook/:id', (req, res) => {
+    const id = db.escape(req.params.id);
     const sql = retrieveBooksSql + 
         `
-        AND book.id = ${req.params.id};
+        AND book.id = ${id};
         `;
 
     const query = db.query(sql, (err, result) => {
@@ -88,7 +88,8 @@ router.get('/getbook/:id', (req, res) => {
 
 // Get book info (Google Books API)
 router.get('/getbookinfo', async (req, res) => {
-    const query = `${req.query.query}&key=${process.env.GOOGLE_BOOKS_API_KEY}`;
+    const bq = db.escape(req.query.query);
+    const query = `${bq}&key=${process.env.GOOGLE_BOOKS_API_KEY}`;
     const bookPromise = await fetch(`https://www.googleapis.com/books/v1/volumes?${query}`);
     const bookJson = await bookPromise.json();
     
@@ -102,12 +103,12 @@ router.get('/getbookinfo', async (req, res) => {
 // Insert book get and post
 router.get('/addbook', (req, res) => {
     const sql = 
-    `
-    SELECT * FROM book_type;
-    SELECT * FROM book_sub_type;
-    SELECT * FROM book_language;
-    SELECT * FROM book_location;
-    `;
+        `
+        SELECT * FROM book_type;
+        SELECT * FROM book_sub_type;
+        SELECT * FROM book_language;
+        SELECT * FROM book_location;
+        `;
 
     const query = db.query(sql, (err, result) => {
         if(err) {
@@ -155,7 +156,7 @@ router.post('/insertbook', (req, res) => {
 
 // Update book GET and PUT (by id)
 router.get('/updatebook', (req, res) => {
-    const id = req.query.id;
+    const id = db.escape(req.query.id);
     const sql = 
         `
         SELECT * FROM book WHERE id = ${id};
@@ -176,7 +177,7 @@ router.get('/updatebook', (req, res) => {
         } else {
             const tplData = {
                 resultMsg: req.query.s === '1' ? `${result[0][0].title} updated.` : false,
-                errorMsg: req.query.s === '1' ? false : 'There was an error trying to update this book. Please try again.',
+                errorMsg: req.query.s === '1' ? false : 'There was an error trying to update this book, please try again.',
                 book: result[0][0],
                 types: result[1],
                 sub_types: result[2],
@@ -190,7 +191,7 @@ router.get('/updatebook', (req, res) => {
 });
 
 router.post('/updatebookbyid/:id', (req, res) => {
-    const id = +req.params.id;
+    const id = +db.escape(req.params.id);
     const book = {
         id,
         author: req.body.author, 
@@ -214,7 +215,7 @@ router.post('/updatebookbyid/:id', (req, res) => {
 
 // Delete book by id
 router.delete('/deletebook/:id', (req, res) => {
-    const { id } = req.params;
+    const id = db.escape(req.params.id);
     const sql = 
         `
         SELECT title FROM book WHERE id = ${id};
