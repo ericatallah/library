@@ -26,19 +26,21 @@ router.get('/', (req, res) => {
 });
 
 // Get all books
+/*
 router.get('/getbooks', (req, res) => {
     const query = db.query(retrieveBooksSql, (err, results) => {
         if(err) throw err;
         res.status(200).json({ fail: false, msg: 'Successfully retrieved data.', data: results });
     });
 });
+*/
 
 // Search books by query parameter string
 router.get('/searchbooks', (req, res) => {
     const s = req.query.booksearch;
 
     if (!s) {
-        res.render('books', { error: 'Please enter a search term first.' });
+        res.render('books', { errorMsg: 'Please enter a search term first.' });
     } else {
         const sql = retrieveBooksSql + 
         `
@@ -56,7 +58,7 @@ router.get('/searchbooks', (req, res) => {
         const query = db.query(sql, (err, results) => {
             if(err) {
                 console.log('SQL Error: ', err);
-                res.render('books', { books: [] });
+                res.render('books', { books: [], errorMsg: 'There was an error with that search, please try again.' });
                 //throw err;
             } else {
                 res.render('books', { books: results });
@@ -110,10 +112,15 @@ router.get('/addbook', (req, res) => {
     const query = db.query(sql, (err, result) => {
         if(err) {
             console.log('SQL Error: ', err);
-            res.render('books', { books: [], success: false, msg: 'There was an error, please try that action again.' });
+            const tplData = {
+                errorMsg: 'There was an error, please try that action again.',
+                books: []
+            };
+            res.render('books', tplData);
         } else {
             const tplData = {
                 resultMsg: req.query.s === '1' ? 'Book added.' : false,
+                errorMsg: req.query.s === '1' ? false : 'There was an error adding this book, please try again.',
                 types: result[0],
                 sub_types: result[1],
                 languages: result[2],
@@ -137,8 +144,12 @@ router.post('/insertbook', (req, res) => {
 
     const sql = 'INSERT INTO book SET ?';
     const query = db.query(sql, book, (err, result) => {
-        if(err) throw err;
-        res.redirect('/books/addbook?s=1');
+        if(err) {
+            console.log('SQL Error: ', err);
+            res.redirect('/books/addbook?s=0');
+        } else {
+            res.redirect('/books/addbook?s=1');
+        }
     });
 });
 
@@ -146,27 +157,35 @@ router.post('/insertbook', (req, res) => {
 router.get('/updatebook', (req, res) => {
     const id = req.query.id;
     const sql = 
-    `
-    SELECT * FROM book WHERE id = ${id};
-    SELECT * FROM book_type;
-    SELECT * FROM book_sub_type;
-    SELECT * FROM book_language;
-    SELECT * FROM book_location;
-    `;
+        `
+        SELECT * FROM book WHERE id = ${id};
+        SELECT * FROM book_type;
+        SELECT * FROM book_sub_type;
+        SELECT * FROM book_language;
+        SELECT * FROM book_location;
+        `;
 
     const query = db.query(sql, (err, result) => {
-        if(err) throw err;
+        if(err) {
+            console.log('SQL Error: ', err);
+            const tplData = {
+                errorMsg: 'There was an error, please try that action again.',
+                books: []
+            };
+            res.render('books', tplData);
+        } else {
+            const tplData = {
+                resultMsg: req.query.s === '1' ? `${result[0][0].title} updated.` : false,
+                errorMsg: req.query.s === '1' ? false : 'There was an error trying to update this book. Please try again.',
+                book: result[0][0],
+                types: result[1],
+                sub_types: result[2],
+                languages: result[3],
+                locations: result[4]
+            };
 
-        const tplData = {
-            resultMsg: req.query.s === '1' ? `${result[0][0].title} updated.` : false,
-            book: result[0][0],
-            types: result[1],
-            sub_types: result[2],
-            languages: result[3],
-            locations: result[4]
-        };
-
-        res.render('updatebook', tplData);
+            res.render('updatebook', tplData);
+        }
     });
 });
 
@@ -184,8 +203,12 @@ router.post('/updatebookbyid/:id', (req, res) => {
 
     const sql = `UPDATE book SET ? WHERE id = ${id};`;
     const query = db.query(sql, book, (err, result) => {
-        if(err) throw err;
-        res.redirect(`/books/updatebook?id=${id}&s=1`);
+        if(err) {
+            console.log('SQL Error: ', err);
+            res.redirect(`/books/updatebook?id=${id}&s=0`);
+        } else {
+            res.redirect(`/books/updatebook?id=${id}&s=1`);
+        }
     });
 });
 
@@ -199,9 +222,12 @@ router.delete('/deletebook/:id', (req, res) => {
         `;
     
     const query = db.query(sql, (err, result) => {
-        if(err) throw err;
-        
-        res.status(200).json({ fail: false, msg: `${result[0][0].title} has been removed.`, data: result[0][0] });
+        if(err) {
+            console.log('SQL Error: ', err);
+            res.status(500).json({ fail: true, msg: 'There was a problem attempting to delete this book, please try again.', data: [] });
+        } else {
+            res.status(200).json({ fail: false, msg: `${result[0][0].title} has been removed.`, data: result[0][0] });
+        }
     });
 });
 

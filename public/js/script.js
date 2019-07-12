@@ -14,6 +14,9 @@ const removeBook = elem => {
     fetch(`/books/deletebook/${id}`, { method: 'DELETE' }).then(res => res.json()).then(json => {
         $('#removeBookModal').modal('hide');
         Utilities.showAlert('danger', json.msg, () => {window.location.reload(true);});
+    }).catch(err => {
+        console.log('Error: ', err);
+        Utilities.showAlert('danger', err.msg);
     });
 };
 
