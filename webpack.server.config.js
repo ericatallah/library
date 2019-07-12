@@ -1,7 +1,7 @@
 const nodeExternals = require('webpack-node-externals');
 const path = require('path');
-const HandlebarsPlugin = require('handlebars-webpack-plugin');
-const { isEqualHelper } = require('./helpers/helpers');
+//const HandlebarsPlugin = require('handlebars-webpack-plugin');
+//const { isEqualHelper } = require('./helpers/helpers');
 
 module.exports = {
     mode: 'development',
