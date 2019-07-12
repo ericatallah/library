@@ -4,10 +4,10 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "webpack --config webpack.dev.config.js && node ./build/server.bundle.js",
-    "build": "webpack --config webpack.server.config.js",
-    "buildProd": "webpack --config webpack.prod.config.js && node ./app.js",
-    "test": "webpack && nodemon"
+    "start": "webpack --config webpack.server.config.js && webpack --config webpack.prod.config.js && node ./build/server.bundle.js",
+    "buildServer": "webpack --config webpack.server.config.js",
+    "buildClient": "webpack --config webpack.prod.config.js",
+    "buildDev": "webpack --config webpack.dev.config.js"
   },
   "repository": {
     "type": "git",
