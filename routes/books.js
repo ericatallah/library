@@ -54,8 +54,13 @@ router.get('/searchbooks', (req, res) => {
         `;
 
         const query = db.query(sql, (err, results) => {
-            if(err) throw err;
-            res.render('books', { books: results });
+            if(err) {
+                console.log('SQL Error: ', err);
+                res.render('books', { books: [] });
+                //throw err;
+            } else {
+                res.render('books', { books: results });
+            }
         });
     }
 });
@@ -69,9 +74,13 @@ router.get('/getbook/:id', (req, res) => {
         `;
 
     const query = db.query(sql, (err, result) => {
-        if(err) throw err;
-        console.log(result);
-        res.send('Book fetched...');
+        if(err) {
+            console.log('SQL Error: ', err);
+            res.send('Error fetching book...');
+            //throw err;
+        } else {
+            res.send('Book fetched...');
+        }
     });
 });
 
@@ -99,17 +108,20 @@ router.get('/addbook', (req, res) => {
     `;
 
     const query = db.query(sql, (err, result) => {
-        if(err) throw err;
-        
-        const tplData = {
-            resultMsg: req.query.s === '1' ? 'Book added.' : false,
-            types: result[0],
-            sub_types: result[1],
-            languages: result[2],
-            locations: result[3]
-        };
-
-        res.render('addbook', tplData);
+        if(err) {
+            console.log('SQL Error: ', err);
+            res.render('books', { books: [], success: false, msg: 'There was an error, please try that action again.' });
+        } else {
+            const tplData = {
+                resultMsg: req.query.s === '1' ? 'Book added.' : false,
+                types: result[0],
+                sub_types: result[1],
+                languages: result[2],
+                locations: result[3]
+            };
+    
+            res.render('addbook', tplData);
+        }
     });
 });
 
