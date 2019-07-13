@@ -37,7 +37,7 @@ router.get('/getbooks', (req, res) => {
 
 // Search books by query parameter string
 router.get('/searchbooks', (req, res) => {
-    const s = db.escape(`%${req.query.booksearch}%`);
+    const s = req.sanitize(db.escape(`%${req.query.booksearch}%`));
 
     if (!s) {
         res.render('books', { errorMsg: 'Please enter a search term first.' });
@@ -60,7 +60,6 @@ router.get('/searchbooks', (req, res) => {
                 console.log('SQL Error: ', err);
                 res.render('books', { books: [], errorMsg: 'There was an error with that search, please try again.' });
             } else {
-                console.log(results);
                 res.render('books', { books: results });
             }
         });
@@ -69,7 +68,7 @@ router.get('/searchbooks', (req, res) => {
 
 // Get single book by id
 router.get('/getbook/:id', (req, res) => {
-    const id = db.escape(req.params.id);
+    const id = db.escape(req.sanitize(req.params.id));
     const sql = retrieveBooksSql + 
         `
         AND book.id = ${id};
@@ -88,7 +87,7 @@ router.get('/getbook/:id', (req, res) => {
 
 // Get book info (Google Books API)
 router.get('/getbookinfo', async (req, res) => {
-    const bq = db.escape(req.query.query);
+    const bq = req.sanitize(req.query.query);
     const query = `${bq}&key=${process.env.GOOGLE_BOOKS_API_KEY}`;
     const bookPromise = await fetch(`https://www.googleapis.com/books/v1/volumes?${query}`);
     const bookJson = await bookPromise.json();
@@ -121,7 +120,7 @@ router.get('/addbook', (req, res) => {
         } else {
             const tplData = {
                 resultMsg: req.query.s === '1' ? 'Book added.' : false,
-                errorMsg: req.query.s === '1' ? false : 'There was an error adding this book, please try again.',
+                errorMsg: req.query.s === '0' ? 'There was an error adding this book, please try again.' : false,
                 types: result[0],
                 sub_types: result[1],
                 languages: result[2],
@@ -134,13 +133,18 @@ router.get('/addbook', (req, res) => {
 });
 
 router.post('/insertbook', (req, res) => {
+    const bookTypeId = +req.body.type;
+    const bookSubTypeId = +req.body.sub_type;
+    const bookLanguageId = +req.body.language;
+    const bookLocationId = +req.body.location;
+
     const book = { 
-        author: req.body.author, 
-        title: req.body.title, 
-        book_type_id: +req.body.type, 
-        book_sub_type_id: +req.body.sub_type, 
-        book_language_id: +req.body.language,
-        book_location_id: +req.body.location 
+        author: req.sanitize(req.body.author), 
+        title: req.sanitize(req.body.title), 
+        book_type_id: req.sanitize(bookTypeId), 
+        book_sub_type_id: req.sanitize(bookSubTypeId), 
+        book_language_id: req.sanitize(bookLanguageId),
+        book_location_id: req.sanitize(bookLocationId) 
     };
 
     const sql = 'INSERT INTO book SET ?';
@@ -156,7 +160,7 @@ router.post('/insertbook', (req, res) => {
 
 // Update book GET and PUT (by id)
 router.get('/updatebook', (req, res) => {
-    const id = db.escape(req.query.id);
+    const id = db.escape(req.sanitize(req.query.id));
     const sql = 
         `
         SELECT * FROM book WHERE id = ${id};
@@ -177,7 +181,7 @@ router.get('/updatebook', (req, res) => {
         } else {
             const tplData = {
                 resultMsg: req.query.s === '1' ? `${result[0][0].title} updated.` : false,
-                errorMsg: req.query.s === '1' ? false : 'There was an error trying to update this book, please try again.',
+                errorMsg: req.query.s === '0' ? 'There was an error trying to update this book, please try again.' : false,
                 book: result[0][0],
                 types: result[1],
                 sub_types: result[2],
@@ -191,18 +195,23 @@ router.get('/updatebook', (req, res) => {
 });
 
 router.post('/updatebookbyid/:id', (req, res) => {
-    const id = +db.escape(req.params.id);
+    const id = req.sanitize(+req.params.id);
+    const bookTypeId = +req.body.type;
+    const bookSubTypeId = +req.body.sub_type;
+    const bookLanguageId = +req.body.language;
+    const bookLocationId = +req.body.location;
+
     const book = {
         id,
         author: req.body.author, 
         title: req.body.title, 
-        book_type_id: +req.body.type, 
-        book_sub_type_id: +req.body.sub_type, 
-        book_language_id: +req.body.language,
-        book_location_id: +req.body.location 
+        book_type_id: bookTypeId, 
+        book_sub_type_id: bookSubTypeId, 
+        book_language_id: bookLanguageId,
+        book_location_id: bookLocationId
     };
 
-    const sql = `UPDATE book SET ? WHERE id = ${id};`;
+    const sql = `UPDATE book SET ? WHERE id = ${db.escape(id)};`;
     const query = db.query(sql, book, (err, result) => {
         if(err) {
             console.log('SQL Error: ', err);
@@ -215,7 +224,7 @@ router.post('/updatebookbyid/:id', (req, res) => {
 
 // Delete book by id
 router.delete('/deletebook/:id', (req, res) => {
-    const id = db.escape(req.params.id);
+    const id = db.escape(req.sanitize(req.params.id));
     const sql = 
         `
         SELECT title FROM book WHERE id = ${id};
