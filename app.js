@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const hbs = require('express-handlebars');
+const expressSanitizer = require('express-sanitizer');
 //const db = require('./db');
 const db = require('./db/database/connection');
 const { Op } = require('sequelize');
@@ -16,6 +17,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(bodyParser.urlencoded({ extended: false }));
+
+app.use(expressSanitizer());
 
 // serve static assets in /public directory as /static route
 app.use('/static', express.static('public'));

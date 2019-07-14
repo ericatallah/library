@@ -2,6 +2,11 @@ const express = require('express');
 const router = express.Router();
 const fetch = require('node-fetch');
 const db = require('../db');
+const Book = require('../db/models/Book');
+const BookType = require('../db/models/BookType');
+const BookSubType = require('../db/models/BookSubType');
+const BookLanguage = require('../db/models/BookLanguage');
+const BookLocation = require('../db/models/BookLocation');
 require('dotenv').config();
 
 let retrieveBooksSql = 
@@ -22,7 +27,8 @@ let retrieveBooksSql =
     `;
 
 router.get('/', (req, res) => {
-    res.render('books');
+    const s = req.sanitize(req.query.s);
+    res.render('books', { errorMsg: s === '0' ? 'There was an error, please try that action again.' : false });
 });
 
 // Get all books
@@ -100,36 +106,29 @@ router.get('/getbookinfo', async (req, res) => {
 });
 
 // Insert book get and post
-router.get('/addbook', (req, res) => {
-    const sql = 
-        `
-        SELECT * FROM book_type;
-        SELECT * FROM book_sub_type;
-        SELECT * FROM book_language;
-        SELECT * FROM book_location;
-        `;
-
-    const query = db.query(sql, (err, result) => {
-        if(err) {
-            console.log('SQL Error: ', err);
-            const tplData = {
-                errorMsg: 'There was an error, please try that action again.',
-                books: []
-            };
-            res.render('books', tplData);
-        } else {
-            const tplData = {
-                resultMsg: req.query.s === '1' ? 'Book added.' : false,
-                errorMsg: req.query.s === '0' ? 'There was an error adding this book, please try again.' : false,
-                types: result[0],
-                sub_types: result[1],
-                languages: result[2],
-                locations: result[3]
-            };
+router.get('/addbook', async (req, res) => {
+    let err = false;
+    const tableData = [];
+    tableData.push(await BookType.findAll().catch(e => err = e));
+    tableData.push(await BookSubType.findAll().catch(e => err = e));
+    tableData.push(await BookLanguage.findAll().catch(e => err = e));
+    tableData.push(await BookLocation.findAll().catch(e => err = e));
     
-            res.render('addbook', tplData);
-        }
-    });
+    if (err) {
+        console.log('SQL Error: ', err);
+        res.redirect('/books?s=0');
+    } else {
+        const tplData = {
+            resultMsg: req.query.s === '1' ? 'Book added.' : false,
+            errorMsg: req.query.s === '0' ? 'There was an error adding this book, please try again.' : false,
+            types: tableData[0],
+            sub_types: tableData[1],
+            languages: tableData[2],
+            locations: tableData[3]
+        };
+
+        res.render('addbook', tplData);
+    }
 });
 
 router.post('/insertbook', (req, res) => {
@@ -159,39 +158,32 @@ router.post('/insertbook', (req, res) => {
 });
 
 // Update book GET and PUT (by id)
-router.get('/updatebook', (req, res) => {
-    const id = db.escape(req.sanitize(req.query.id));
-    const sql = 
-        `
-        SELECT * FROM book WHERE id = ${id};
-        SELECT * FROM book_type;
-        SELECT * FROM book_sub_type;
-        SELECT * FROM book_language;
-        SELECT * FROM book_location;
-        `;
+router.get('/updatebook', async (req, res) => {
+    const id = req.sanitize(req.query.id);
+    let err = false;
+    const tableData = [];
+    tableData.push(await Book.findByPk(id).catch(e => err = e));
+    tableData.push(await BookType.findAll().catch(e => err = e));
+    tableData.push(await BookSubType.findAll().catch(e => err = e));
+    tableData.push(await BookLanguage.findAll().catch(e => err = e));
+    tableData.push(await BookLocation.findAll().catch(e => err = e));
 
-    const query = db.query(sql, (err, result) => {
-        if(err) {
-            console.log('SQL Error: ', err);
-            const tplData = {
-                errorMsg: 'There was an error, please try that action again.',
-                books: []
-            };
-            res.render('books', tplData);
-        } else {
-            const tplData = {
-                resultMsg: req.query.s === '1' ? `${result[0][0].title} updated.` : false,
-                errorMsg: req.query.s === '0' ? 'There was an error trying to update this book, please try again.' : false,
-                book: result[0][0],
-                types: result[1],
-                sub_types: result[2],
-                languages: result[3],
-                locations: result[4]
-            };
+    if (err) {
+        console.log('SQL Error: ', err);
+        res.redirect('/books?s=0');
+    } else {
+        const tplData = {
+            resultMsg: req.query.s === '1' ? `${result[0][0].title} updated.` : false,
+            errorMsg: req.query.s === '0' ? 'There was an error trying to update this book, please try again.' : false,
+            book: tableData[0],
+            types: tableData[1],
+            sub_types: tableData[2],
+            languages: tableData[3],
+            locations: tableData[4]
+        };
 
-            res.render('updatebook', tplData);
-        }
-    });
+        res.render('updatebook', tplData);
+    }
 });
 
 router.post('/updatebookbyid/:id', (req, res) => {
