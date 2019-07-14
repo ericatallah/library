@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const hbs = require('express-handlebars');
 const expressSanitizer = require('express-sanitizer');
-const db = require('./db');
+const db = global.db || require('./db');
 const { isEqualHelper } = require('./helpers/helpers');
 
 const app = express();

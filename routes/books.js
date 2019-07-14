@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const fetch = require('node-fetch');
-const db = require('../db');
+const db = global.db || require('../db');
 require('dotenv').config();
 
 let retrieveBooksSql = 

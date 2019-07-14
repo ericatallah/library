@@ -1,14 +1,8 @@
 const mysql = require('mysql');
 require('dotenv').config();
 
-// Create connection
-let db;/* = mysql.createConnection({
-    host     : process.env.DB_CONN_HOST,
-    user     : process.env.DB_CONN_USER,
-    password : process.env.DB_CONN_PW,
-    database : process.env.DB_CONN_DBNAME,
-    multipleStatements: true
-});*/
+// Create global connection object
+global.db = global.db || false;
 
 // Connect
 const handleDisconnect = () => {
@@ -39,15 +33,6 @@ const handleDisconnect = () => {
     })
 };
 
-handleDisconnect();
-
-/*db.connect((err) => {
-    if(err){
-        console.log('Error when connecting to db: ', err);
-        setTimeout(handleDisconnect, 2000);
-        //throw err;
-    }
-    console.log('MySql Connected...');
-});*/
+if (!global.db) handleDisconnect();
 
 module.exports = db;
