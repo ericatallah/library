@@ -93,34 +93,30 @@ app.get('/getbooks', async (req, res) => {
             { 
                 model: BookType, 
                 attributes: ['type'], 
-                where: {
-                    type: { [Op.substring]: 'revolution' },
-                    //id: Book.book_type_id 
-                } 
+                //where: {
+                    //type: { [Op.substring]: 'revolution' }
+                //} 
             },
             { 
                 model: BookSubType, 
                 attributes: ['sub_type'], 
-                where: {
-                    sub_type: { [Op.substring]: 'revolution' },
-                    //id: Book.book_sub_type_id 
-                } 
+                // where: {
+                //     sub_type: { [Op.substring]: 'revolution' }
+                // } 
             },
             { 
                 model: BookLanguage, 
                 attributes: ['language'], 
-                where: {
-                    language: { [Op.substring]: 'revolution' },
-                    //id: Book.book_language_id 
-                } 
+                // where: {
+                //     language: { [Op.substring]: 'revolution' }
+                // } 
             },
             { 
                 model: BookLocation, 
                 attributes: ['location'], 
-                where: {
-                    location: { [Op.substring]: 'revolution' },
-                    //id: Book.book_language_id 
-                }  
+                // where: {
+                //     location: { [Op.substring]: 'revolution' }
+                // }  
             },
         ]
     });
