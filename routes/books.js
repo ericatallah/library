@@ -37,7 +37,7 @@ router.get('/getbooks', (req, res) => {
 
 // Search books by query parameter string
 router.get('/searchbooks', (req, res) => {
-    const s = req.sanitize(db.escape(`%${req.query.booksearch}%`));
+    const s = req.sanitize(db.escape(`%${req.query.booksearch.trim()}%`));
 
     if (!s) {
         res.render('books', { errorMsg: 'Please enter a search term first.' });
@@ -164,8 +164,8 @@ router.post('/insertbook', (req, res) => {
     const bookLocationId = +req.body.location;
 
     const book = { 
-        author: req.sanitize(req.body.author), 
-        title: req.sanitize(req.body.title), 
+        author: req.sanitize(req.body.author.trim()), 
+        title: req.sanitize(req.body.title.trim()), 
         book_type_id: req.sanitize(bookTypeId), 
         book_sub_type_id: req.sanitize(bookSubTypeId), 
         book_language_id: req.sanitize(bookLanguageId),
@@ -245,12 +245,12 @@ router.post('/updatebookbyid/:id', (req, res) => {
 
     const book = {
         id,
-        author: req.body.author, 
-        title: req.body.title, 
-        book_type_id: bookTypeId, 
-        book_sub_type_id: bookSubTypeId, 
-        book_language_id: bookLanguageId,
-        book_location_id: bookLocationId
+        author: req.sanitize(req.body.author.trim()), 
+        title: req.sanitize(req.body.title.trim()), 
+        book_type_id: req.sanitize(bookTypeId), 
+        book_sub_type_id: req.sanitize(bookSubTypeId), 
+        book_language_id: req.sanitize(bookLanguageId),
+        book_location_id: req.sanitize(bookLocationId)
     };
 
     const sql = `UPDATE book SET ? WHERE id = ${db.escape(id)};`;
