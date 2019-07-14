@@ -55,13 +55,22 @@ router.get('/searchbooks', (req, res) => {
             ) ORDER BY book_type.type, book_sub_type.sub_type;
             `;
 
-        const query = db.query(sql, (err, results) => {
-            if(err) {
-                console.log('SQL Error: ', err);
-                res.render('books', { books: [], errorMsg: 'There was an error with that search, please try again.' });
-            } else {
-                res.render('books', { books: results });
+        db.getConnection((e, conn) => {
+            if (e) {
+                conn.release();
+                console.log('Error getting connection from pool: ', e);
+                throw e;
             }
+
+            conn.query(sql, (err, results) => {
+                conn.release();
+                if(err) {
+                    console.log('SQL Query Error: ', err);
+                    res.render('books', { books: [], errorMsg: 'There was an error with that search, please try again.' });
+                } else {
+                    res.render('books', { books: results });
+                }
+            });
         });
     }
 });
@@ -74,14 +83,22 @@ router.get('/getbook/:id', (req, res) => {
         AND book.id = ${id};
         `;
 
-    const query = db.query(sql, (err, result) => {
-        if(err) {
-            console.log('SQL Error: ', err);
-            res.send('Error fetching book...');
-            //throw err;
-        } else {
-            res.send('Book fetched...');
+    db.getConnection((e, conn) => {
+        if (e) {
+            conn.release();
+            console.log('Error getting connection from pool: ', e);
+            throw e;
         }
+        conn.query(sql, (err, result) => {
+            conn.release();
+            if(err) {
+                console.log('SQL Error: ', err);
+                res.send('Error fetching book...');
+                //throw err;
+            } else {
+                res.send('Book fetched...');
+            }
+        });
     });
 });
 
@@ -109,26 +126,34 @@ router.get('/addbook', (req, res) => {
         SELECT * FROM book_location;
         `;
 
-    const query = db.query(sql, (err, result) => {
-        if(err) {
-            console.log('SQL Error: ', err);
-            const tplData = {
-                errorMsg: 'There was an error, please try that action again.',
-                books: []
-            };
-            res.render('books', tplData);
-        } else {
-            const tplData = {
-                resultMsg: req.query.s === '1' ? 'Book added.' : false,
-                errorMsg: req.query.s === '0' ? 'There was an error adding this book, please try again.' : false,
-                types: result[0],
-                sub_types: result[1],
-                languages: result[2],
-                locations: result[3]
-            };
-    
-            res.render('addbook', tplData);
+    db.getConnection((e, conn) => {
+        if (e) {
+            conn.release();
+            console.log('Error getting connection from pool: ', e);
+            throw e;
         }
+        conn.query(sql, (err, result) => {
+            conn.release();
+            if(err) {
+                console.log('SQL Error: ', err);
+                const tplData = {
+                    errorMsg: 'There was an error, please try that action again.',
+                    books: []
+                };
+                res.render('books', tplData);
+            } else {
+                const tplData = {
+                    resultMsg: req.query.s === '1' ? 'Book added.' : false,
+                    errorMsg: req.query.s === '0' ? 'There was an error adding this book, please try again.' : false,
+                    types: result[0],
+                    sub_types: result[1],
+                    languages: result[2],
+                    locations: result[3]
+                };
+        
+                res.render('addbook', tplData);
+            }
+        });
     });
 });
 
@@ -148,13 +173,22 @@ router.post('/insertbook', (req, res) => {
     };
 
     const sql = 'INSERT INTO book SET ?';
-    const query = db.query(sql, book, (err, result) => {
-        if(err) {
-            console.log('SQL Error: ', err);
-            res.redirect('/books/addbook?s=0');
-        } else {
-            res.redirect('/books/addbook?s=1');
+
+    db.getConnection((e, conn) => {
+        if (e) {
+            conn.release();
+            console.log('Error getting connection from pool: ', e);
+            throw e;
         }
+        conn.query(sql, book, (err, result) => {
+            conn.release();
+            if(err) {
+                console.log('SQL Error: ', err);
+                res.redirect('/books/addbook?s=0');
+            } else {
+                res.redirect('/books/addbook?s=1');
+            }
+        });
     });
 });
 
@@ -170,27 +204,35 @@ router.get('/updatebook', (req, res) => {
         SELECT * FROM book_location;
         `;
 
-    const query = db.query(sql, (err, result) => {
-        if(err) {
-            console.log('SQL Error: ', err);
-            const tplData = {
-                errorMsg: 'There was an error, please try that action again.',
-                books: []
-            };
-            res.render('books', tplData);
-        } else {
-            const tplData = {
-                resultMsg: req.query.s === '1' ? `${result[0][0].title} updated.` : false,
-                errorMsg: req.query.s === '0' ? 'There was an error trying to update this book, please try again.' : false,
-                book: result[0][0],
-                types: result[1],
-                sub_types: result[2],
-                languages: result[3],
-                locations: result[4]
-            };
-
-            res.render('updatebook', tplData);
+    db.getConnection((e, conn) => {
+        if (e) {
+            conn.release();
+            console.log('Error getting connection from pool: ', e);
+            throw e;
         }
+        conn.query(sql, (err, result) => {
+            conn.release();
+            if(err) {
+                console.log('SQL Error: ', err);
+                const tplData = {
+                    errorMsg: 'There was an error, please try that action again.',
+                    books: []
+                };
+                res.render('books', tplData);
+            } else {
+                const tplData = {
+                    resultMsg: req.query.s === '1' ? `${result[0][0].title} updated.` : false,
+                    errorMsg: req.query.s === '0' ? 'There was an error trying to update this book, please try again.' : false,
+                    book: result[0][0],
+                    types: result[1],
+                    sub_types: result[2],
+                    languages: result[3],
+                    locations: result[4]
+                };
+
+                res.render('updatebook', tplData);
+            }
+        });
     });
 });
 
@@ -212,13 +254,22 @@ router.post('/updatebookbyid/:id', (req, res) => {
     };
 
     const sql = `UPDATE book SET ? WHERE id = ${db.escape(id)};`;
-    const query = db.query(sql, book, (err, result) => {
-        if(err) {
-            console.log('SQL Error: ', err);
-            res.redirect(`/books/updatebook?id=${id}&s=0`);
-        } else {
-            res.redirect(`/books/updatebook?id=${id}&s=1`);
+
+    db.getConnection((e, conn) => {
+        if (e) {
+            conn.release();
+            console.log('Error getting connection from pool: ', e);
+            throw e;
         }
+        conn.query(sql, book, (err, result) => {
+            conn.release();
+            if(err) {
+                console.log('SQL Error: ', err);
+                res.redirect(`/books/updatebook?id=${id}&s=0`);
+            } else {
+                res.redirect(`/books/updatebook?id=${id}&s=1`);
+            }
+        });
     });
 });
 
@@ -231,13 +282,21 @@ router.delete('/deletebook/:id', (req, res) => {
         DELETE FROM book WHERE id = ${id};
         `;
     
-    const query = db.query(sql, (err, result) => {
-        if(err) {
-            console.log('SQL Error: ', err);
-            res.status(500).json({ fail: true, msg: 'There was a problem attempting to delete this book, please try again.', data: [] });
-        } else {
-            res.status(200).json({ fail: false, msg: `${result[0][0].title} has been removed.`, data: result[0][0] });
+    db.getConnection((e, conn) => {
+        if (e) {
+            conn.release();
+            console.log('Error getting connection from pool: ', e);
+            throw e;
         }
+        conn.query(sql, (err, result) => {
+            conn.release();
+            if(err) {
+                console.log('SQL Error: ', err);
+                res.status(500).json({ fail: true, msg: 'There was a problem attempting to delete this book, please try again.', data: [] });
+            } else {
+                res.status(200).json({ fail: false, msg: `${result[0][0].title} has been removed.`, data: result[0][0] });
+            }
+        });
     });
 });
 

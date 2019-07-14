@@ -178,10 +178,14 @@ app.get('/createandseedtables', (req, res) => {
     (DEFAULT ,'MANN, Charles', '1491 - New Revelations of the Americas before Columbus', 12, 3, 2, 6);
     `;
 
-    db.query(sql, (err, results) => {
-        if (err) throw err;
-        res.send('Tables created and seeded..');
-    });
+    db.getConnection((err, conn) => {
+        conn.query(sql, (err, results) => {
+            if (err) throw err;
+            conn.release();
+            res.send('Tables created and seeded..');
+        });
+    })
+    
 });
 
 // 404 route
