@@ -4,7 +4,8 @@ const hbs = require('express-handlebars');
 const expressSanitizer = require('express-sanitizer');
 //const db = require('./db');
 const db = require('./db/database/connection');
-const { Op } = require('sequelize');
+const Sequelize = require('sequelize');
+const { Op } = Sequelize;
 const Book = require('./db/models/Book');
 const BookType = require('./db/models/BookType');
 const BookSubType = require('./db/models/BookSubType');
@@ -75,53 +76,46 @@ app.get('/getbooks', async (req, res) => {
 
     */
 
-    /* This sort of works..
-    const books = await BookType.findOne({
-        where: {
-            type: 'History'
-        }
-    }).then(type => type.getBooks());
-    */
-
-    // todo eric: get this shit to work!
-    const books = await Book.findAll({
+   const books = await Book.findAll({
         where: {
             [Op.or]: [
                 {author: { [Op.substring]: 'revolution' }},
-                {title: { [Op.substring]: 'revolution' }}
+                {title: { [Op.substring]: 'revolution' }},
+                {a: Sequelize.literal(`BookType.type LIKE '%revolution%'`)},
+                {b: Sequelize.literal(`BookSubType.sub_type LIKE '%revolution%'`)},
+                {c: Sequelize.literal(`BookLocation.location LIKE '%revolution%'`)},
+                {d: Sequelize.literal(`BookLanguage.language LIKE '%revolution%'`)},
             ]
         },
-        attributes: ['id', 'author', 'title'],
+        order: Sequelize.literal(`BookType.type, BookSubType.sub_type, Book.author`),
+        attributes: [
+            'id', 'author', 'title',
+            [Sequelize.col('BookType.type'), 'type'],
+            [Sequelize.col('BookSubType.sub_type'), 'sub_type'],
+            [Sequelize.col('BookLanguage.language'), 'language'],
+            [Sequelize.col('BookLocation.location'), 'location'],
+        ],
         include: [
             { 
                 model: BookType, 
-                attributes: ['type'], 
-                //where: {
-                    //type: { [Op.substring]: 'revolution' }
-                //} 
+                attributes: [],
             },
             { 
                 model: BookSubType, 
-                attributes: ['sub_type'], 
-                // where: {
-                //     sub_type: { [Op.substring]: 'revolution' }
-                // } 
+                attributes: [],
             },
             { 
                 model: BookLanguage, 
-                attributes: ['language'], 
-                // where: {
-                //     language: { [Op.substring]: 'revolution' }
-                // } 
+                attributes: [],
             },
             { 
                 model: BookLocation, 
-                attributes: ['location'], 
-                // where: {
-                //     location: { [Op.substring]: 'revolution' }
-                // }  
+                attributes: [],
             },
-        ]
+        ],
+    }).catch(e => {
+        console.log('Sequelize Error: ', e);
+        res.render('books', { books: [], errorMsg: 'There was an error with that search, please try again.' });
     });
     
 

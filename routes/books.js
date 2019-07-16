@@ -2,29 +2,14 @@ const express = require('express');
 const router = express.Router();
 const fetch = require('node-fetch');
 const db = require('../db');
+const Sequelize = require('sequelize');
+const { Op } = Sequelize;
 const Book = require('../db/models/Book');
 const BookType = require('../db/models/BookType');
 const BookSubType = require('../db/models/BookSubType');
 const BookLanguage = require('../db/models/BookLanguage');
 const BookLocation = require('../db/models/BookLocation');
 require('dotenv').config();
-
-let retrieveBooksSql = 
-    `
-    SELECT 
-        book.id, book.author, book.title, 
-        book_type.type,
-        book_sub_type.sub_type,
-        book_language.language,
-        book_location.location
-    FROM
-        book, book_type, book_sub_type, book_language, book_location
-    WHERE
-        book.book_type_id = book_type.id AND
-        book.book_sub_type_id = book_sub_type.id AND
-        book.book_language_id = book_language.id AND
-        book.book_location_id = book_location.id
-    `;
 
 router.get('/', (req, res) => {
     const s = req.sanitize(req.query.s);
@@ -42,54 +27,77 @@ router.get('/getbooks', (req, res) => {
 */
 
 // Search books by query parameter string
-router.get('/searchbooks', (req, res) => {
-    const s = req.sanitize(db.escape(`%${req.query.booksearch}%`));
+router.get('/searchbooks', async (req, res) => {
+    const sRaw = req.sanitize(db.escape(`%${req.query.booksearch}%`));
+    const s = req.sanitize(req.query.booksearch);
 
     if (!s) {
         res.render('books', { errorMsg: 'Please enter a search term first.' });
     } else {
-        const sql = retrieveBooksSql + 
-            `
-            AND
-            (
-                book.author LIKE ${s} OR 
-                book.title LIKE ${s} OR 
-                book_type.type LIKE ${s} OR 
-                book_sub_type.sub_type LIKE ${s} OR
-                book_language.language LIKE ${s} OR
-                book_location.location LIKE ${s}
-            ) ORDER BY book_type.type, book_sub_type.sub_type;
-            `;
-
-        const query = db.query(sql, (err, results) => {
-            if(err) {
-                console.log('SQL Error: ', err);
-                res.render('books', { books: [], errorMsg: 'There was an error with that search, please try again.' });
-            } else {
-                res.render('books', { books: results });
-            }
+        const books = await Book.findAll({
+            where: {
+                [Op.or]: [
+                    {author: { [Op.substring]: s }},
+                    {title: { [Op.substring]: s }},
+                    {a: Sequelize.literal(`BookType.type LIKE ${sRaw}`)},
+                    {b: Sequelize.literal(`BookSubType.sub_type LIKE ${sRaw}`)},
+                    {c: Sequelize.literal(`BookLocation.location LIKE ${sRaw}`)},
+                    {d: Sequelize.literal(`BookLanguage.language LIKE ${sRaw}`)},
+                ]
+            },
+            order: Sequelize.literal(`BookType.type, BookSubType.sub_type, Book.author`),
+            attributes: [
+                'id', 'author', 'title',
+                [Sequelize.col('BookType.type'), 'type'],
+                [Sequelize.col('BookSubType.sub_type'), 'sub_type'],
+                [Sequelize.col('BookLanguage.language'), 'language'],
+                [Sequelize.col('BookLocation.location'), 'location'],
+            ],
+            include: [
+                { 
+                    model: BookType, 
+                    attributes: [],
+                },
+                { 
+                    model: BookSubType, 
+                    attributes: [],
+                },
+                { 
+                    model: BookLanguage, 
+                    attributes: [],
+                },
+                { 
+                    model: BookLocation, 
+                    attributes: [],
+                },
+            ],
+        }).catch(e => {
+            console.log('Sequelize Error: ', e);
+            res.render('books', { books: [], errorMsg: 'There was an error with that search, please try again.' });
         });
+
+        res.render('books', { books: JSON.parse(JSON.stringify(books)) });
     }
 });
 
 // Get single book by id
-router.get('/getbook/:id', (req, res) => {
-    const id = db.escape(req.sanitize(req.params.id));
-    const sql = retrieveBooksSql + 
-        `
-        AND book.id = ${id};
-        `;
+// router.get('/getbook/:id', (req, res) => {
+//     const id = db.escape(req.sanitize(req.params.id));
+//     const sql = retrieveBooksSql + 
+//         `
+//         AND book.id = ${id};
+//         `;
 
-    const query = db.query(sql, (err, result) => {
-        if(err) {
-            console.log('SQL Error: ', err);
-            res.send('Error fetching book...');
-            //throw err;
-        } else {
-            res.send('Book fetched...');
-        }
-    });
-});
+//     const query = db.query(sql, (err, result) => {
+//         if(err) {
+//             console.log('SQL Error: ', err);
+//             res.send('Error fetching book...');
+//             //throw err;
+//         } else {
+//             res.send('Book fetched...');
+//         }
+//     });
+// });
 
 // Get book info (Google Books API)
 router.get('/getbookinfo', async (req, res) => {
@@ -115,7 +123,7 @@ router.get('/addbook', async (req, res) => {
     tableData.push(await BookLocation.findAll().catch(e => err = e));
     
     if (err) {
-        console.log('SQL Error: ', err);
+        console.log('Sequelize Error: ', err);
         res.redirect('/books?s=0');
     } else {
         const tplData = {
@@ -131,7 +139,7 @@ router.get('/addbook', async (req, res) => {
     }
 });
 
-router.post('/insertbook', (req, res) => {
+router.post('/insertbook', async (req, res) => {
     const bookTypeId = +req.body.type;
     const bookSubTypeId = +req.body.sub_type;
     const bookLanguageId = +req.body.language;
@@ -146,21 +154,22 @@ router.post('/insertbook', (req, res) => {
         book_location_id: req.sanitize(bookLocationId) 
     };
 
-    const sql = 'INSERT INTO book SET ?';
-    const query = db.query(sql, book, (err, result) => {
-        if(err) {
-            console.log('SQL Error: ', err);
-            res.redirect('/books/addbook?s=0');
-        } else {
-            res.redirect('/books/addbook?s=1');
-        }
+    const bookInstance = await Book.create(book).catch(e => {
+        console.log('Sequelize Insert Error: ', e);
+        res.redirect('/books/addbook?s=0');
     });
+
+    if (bookInstance) {
+        res.redirect('/books/addbook?s=1');
+    }
 });
 
 // Update book GET and PUT (by id)
 router.get('/updatebook', async (req, res) => {
     const id = req.sanitize(req.query.id);
     let err = false;
+
+    // todo eric: need to redirect back to /books after a successful update, and display success message there instead..
     const tableData = [];
     tableData.push(await Book.findByPk(id).catch(e => err = e));
     tableData.push(await BookType.findAll().catch(e => err = e));
@@ -173,7 +182,7 @@ router.get('/updatebook', async (req, res) => {
         res.redirect('/books?s=0');
     } else {
         const tplData = {
-            resultMsg: req.query.s === '1' ? `${result[0][0].title} updated.` : false,
+            resultMsg: req.query.s === '1' ? `${tableData[0].title} updated.` : false,
             errorMsg: req.query.s === '0' ? 'There was an error trying to update this book, please try again.' : false,
             book: tableData[0],
             types: tableData[1],
@@ -186,12 +195,13 @@ router.get('/updatebook', async (req, res) => {
     }
 });
 
-router.post('/updatebookbyid/:id', (req, res) => {
+router.post('/updatebookbyid/:id', async (req, res) => {
     const id = req.sanitize(+req.params.id);
     const bookTypeId = +req.body.type;
     const bookSubTypeId = +req.body.sub_type;
     const bookLanguageId = +req.body.language;
     const bookLocationId = +req.body.location;
+    let err = false;
 
     const book = {
         id,
@@ -203,15 +213,15 @@ router.post('/updatebookbyid/:id', (req, res) => {
         book_location_id: bookLocationId
     };
 
-    const sql = `UPDATE book SET ? WHERE id = ${db.escape(id)};`;
-    const query = db.query(sql, book, (err, result) => {
-        if(err) {
-            console.log('SQL Error: ', err);
-            res.redirect(`/books/updatebook?id=${id}&s=0`);
-        } else {
-            res.redirect(`/books/updatebook?id=${id}&s=1`);
-        }
-    });
+    const bookInstance = await Book.findByPk(id).catch(e => err = e);
+    bookInstance.update(book).catch(e => err = e);
+
+    if(err) {
+        console.log('Sequelize Error: ', err);
+        res.redirect(`/books/updatebook?id=${id}&s=0`);
+    } else {
+        res.redirect(`/books/updatebook?id=${id}&s=1`);
+    }
 });
 
 // Delete book by id
