@@ -23,6 +23,6 @@ const self = module.exports = {
         self.alertTimeout = setTimeout(() => {
             $('.alert').alert('close');
             if (callback) callback();
-        }, 5000);
+        }, 3000);
     }
 };
