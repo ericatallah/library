@@ -16,7 +16,6 @@ const Book = conn.define('Book', {
     title: Sequelize.STRING(255),
     book_type_id: {
         type: Sequelize.INTEGER(11),
-        //field: 'book_type_id',
         references: {
             model: 'book_type',
             key: 'id'
@@ -25,7 +24,6 @@ const Book = conn.define('Book', {
     },
     book_sub_type_id: {
         type: Sequelize.INTEGER(11),
-        //field: 'book_sub_type_id',
         references: {
             model: 'book_sub_type',
             key: 'id'
@@ -34,7 +32,6 @@ const Book = conn.define('Book', {
     },
     book_language_id: {
         type: Sequelize.INTEGER(11),
-        //field: 'book_language_id',
         references: {
             model: 'book_language',
             key: 'id'
@@ -43,7 +40,6 @@ const Book = conn.define('Book', {
     },
     book_location_id: {
         type: Sequelize.INTEGER(11),
-        //field: 'book_location_id',
         references: {
             model: 'book_location',
             key: 'id'

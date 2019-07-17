@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const fetch = require('node-fetch');
-const db = require('../db');
 const Sequelize = require('sequelize');
 const { Op } = Sequelize;
+const SqlString = require('sequelize/lib/sql-string');
 const Book = require('../db/models/Book');
 const BookType = require('../db/models/BookType');
 const BookSubType = require('../db/models/BookSubType');
@@ -28,7 +28,7 @@ router.get('/getbooks', (req, res) => {
 
 // Search books by query parameter string
 router.get('/searchbooks', async (req, res) => {
-    const sRaw = req.sanitize(db.escape(`%${req.query.booksearch}%`));
+    const sRaw = req.sanitize(SqlString.escape(`%${req.query.booksearch}%`));
     const s = req.sanitize(req.query.booksearch);
 
     if (!s) {
@@ -79,25 +79,6 @@ router.get('/searchbooks', async (req, res) => {
         res.render('books', { books: JSON.parse(JSON.stringify(books)) });
     }
 });
-
-// Get single book by id
-// router.get('/getbook/:id', (req, res) => {
-//     const id = db.escape(req.sanitize(req.params.id));
-//     const sql = retrieveBooksSql + 
-//         `
-//         AND book.id = ${id};
-//         `;
-
-//     const query = db.query(sql, (err, result) => {
-//         if(err) {
-//             console.log('SQL Error: ', err);
-//             res.send('Error fetching book...');
-//             //throw err;
-//         } else {
-//             res.send('Book fetched...');
-//         }
-//     });
-// });
 
 // Get book info (Google Books API)
 router.get('/getbookinfo', async (req, res) => {
@@ -225,22 +206,21 @@ router.post('/updatebookbyid/:id', async (req, res) => {
 });
 
 // Delete book by id
-router.delete('/deletebook/:id', (req, res) => {
-    const id = db.escape(req.sanitize(req.params.id));
-    const sql = 
-        `
-        SELECT title FROM book WHERE id = ${id};
-        DELETE FROM book WHERE id = ${id};
-        `;
+router.delete('/deletebook/:id', async (req, res) => {
+    const id = req.sanitize(req.params.id);
+    let err;
+
+    const bookInstance = await Book.findByPk(id).catch(e => err = e);
+    const deleteBook = await Book.destroy({
+        where: { id }
+    }).catch(e => err = e);
     
-    const query = db.query(sql, (err, result) => {
-        if(err) {
-            console.log('SQL Error: ', err);
-            res.status(500).json({ fail: true, msg: 'There was a problem attempting to delete this book, please try again.', data: [] });
-        } else {
-            res.status(200).json({ fail: false, msg: `${result[0][0].title} has been removed.`, data: result[0][0] });
-        }
-    });
+    if(err) {
+        console.log('Sequelize Error: ', err);
+        res.status(500).json({ fail: true, msg: 'There was a problem attempting to delete this book, please try again.', data: [] });
+    } else {
+        res.status(200).json({ fail: false, msg: `${bookInstance.title} has been removed.`, data: bookInstance });
+    }
 });
 
 module.exports = router;
