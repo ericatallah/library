@@ -179,6 +179,10 @@ app.get('/createandseedtables', (req, res) => {
     `;
 
     db.getConnection((err, conn) => {
+        if (err) {
+            console.log('SQL Connection Error: ', err);
+            res.send('SQL Connection Error: ' + err);
+        }
         conn.query(sql, (err, results) => {
             if (err) throw err;
             conn.release();
