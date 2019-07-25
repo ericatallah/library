@@ -8,6 +8,18 @@ window.onload = () => {
     Utilities.removeAlert();
 };
 
+$(document).scroll(() => {
+    let scrollTop = $(document).scrollTop();
+
+    if (scrollTop > 175) {
+        $('.search-form-container form').addClass('sticky');
+    } else {
+        $('.search-form-container form').removeClass('sticky');
+    }
+});
+
+$(document).trigger('scroll');
+
 const removeBook = elem => {
     const id = +elem.getAttribute('data-bookid');
     
